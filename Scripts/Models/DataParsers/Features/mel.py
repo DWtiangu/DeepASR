@@ -25,38 +25,52 @@ def _parse_one_audio_melspec(au_data_obj, fft_s, hop_s, target_sr, n_mels ):
 import tensorflow as tf
 from tensorflow.python.ops import io_ops
 from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
-def _parse_one_audio_tf_melspec(au_data_obj,fft_s, hop_s, target_sr, n_mels ):
-    n_fft = round(fft_s * target_sr)
-    hop_length = round(hop_s * target_sr)
+def _parse_one_audio_tf_melspec(au_data_obj,fft_s, hop_s, n_mels ):
     
     with tf.Session(graph=tf.Graph()) as sess:
         wav_filename_placeholder = tf.placeholder(tf.string, [])
         wav_loader = io_ops.read_file(wav_filename_placeholder)
-        wav_decoder = contrib_audio.decode_wav(wav_loader, desired_channels=1, desired_samples=target_sr)
-        stfts_ = tf.contrib.signal.stft(
-            wav_decoder.audio,
-            frame_length=n_fft,
-            frame_step=hop_length,
-            fft_length=None)
-        spectrogram_ = tf.abs(stfts_)
-        lower_edge_hertz, upper_edge_hertz = 80.0, 7600.0
-        linear_to_mel_weight_matrix = \
-            tf.contrib.signal.linear_to_mel_weight_matrix(
-                num_mel_bins=n_mels,
-                num_spectrogram_bins=spectrogram_.shape[-1].value, 
-                sample_rate=target_sr,
-                lower_edge_hertz=lower_edge_hertz,
-                upper_edge_hertz=upper_edge_hertz
-            )
-        mel_spectrograms_ = tf.tensordot(spectrogram_,
-                                        linear_to_mel_weight_matrix, 1)
-        mel_spectrograms_.set_shape(spectrogram_.shape[:-1].concatenate(
-                linear_to_mel_weight_matrix.shape[-1:]))
-        log_mel_spectrograms_ = tf.log(mel_spectrograms_ + 1e-6)
+        wav_decoder = contrib_audio.decode_wav(wav_loader, desired_channels=1, desired_samples=-1)
+        DecodeWav = sess.run(wav_decoder,feed_dict={
+                wav_filename_placeholder: au_data_obj.filepath
+            })
+        sr = DecodeWav.sample_rate
+
+        
+        audio_placeholder  = tf.placeholder(tf.float32,shape=(None,1))
+
+        log_mel_spectrograms_ = raw_audio2log_mel_spec_op(audio_placeholder,sr,fft_s, hop_s, n_mels)
         res = sess.run(
             log_mel_spectrograms_,
             feed_dict={
-                wav_filename_placeholder: au_data_obj.filename
+                audio_placeholder: DecodeWav.audio,
             })
-        
-        return res
+    return res[0]
+
+
+def raw_audio2log_mel_spec_op(audio_placeholder,sr,fft_s, hop_s, n_mels):
+
+    n_fft = int(round(fft_s * sr))
+    hop_length =  int(round(hop_s * sr))
+    stfts_ = tf.contrib.signal.stft(
+        tf.transpose(audio_placeholder),
+        frame_length=n_fft,
+        frame_step=hop_length,
+        fft_length=None)
+    spectrogram_ = tf.abs(stfts_)
+#         lower_edge_hertz = 125.0
+#         upper_edge_hertz = 3800.0
+    linear_to_mel_weight_matrix = \
+        tf.contrib.signal.linear_to_mel_weight_matrix(
+            num_mel_bins=n_mels,
+            num_spectrogram_bins=spectrogram_.shape[-1].value, 
+            sample_rate=sr,
+#                 lower_edge_hertz=lower_edge_hertz,
+#                 upper_edge_hertz=upper_edge_hertz
+        )
+    mel_spectrograms_ = tf.tensordot(spectrogram_,
+                                    linear_to_mel_weight_matrix,1)
+    mel_spectrograms_.set_shape(spectrogram_.shape[:-1].concatenate(
+            linear_to_mel_weight_matrix.shape[-1:]))
+    log_mel_spectrograms_ = tf.log(mel_spectrograms_ + 1e-6)
+    return log_mel_spectrograms_

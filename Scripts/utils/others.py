@@ -55,6 +55,10 @@ def make_AuDataObjs_list(DataObj_class: AuDataObj, paths: list([str])):
 
 
 def test_dataObjs(DataObjs,dataparser,labelparser,error_info_save_fp):
+    '''
+    这是一个函数文档
+    函数文档有约定好的格式
+    '''
     # 直接执行此文件将遍历测试一遍所有的数据，
     # 有问题的单个数据id会自动被ERROR_DATA_INFO类持久化记录下来到一个文件中去，以后make_AuDataObjs_list载入时可选择略过
     class ShorterThanLabelError(Exception):

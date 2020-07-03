@@ -1,6 +1,6 @@
 import librosa
 import numpy as np
-def _parse_one_audio_stft(ori_y, ori_sr, fft_s, hop_s, target_sr):
+def _parse_one_audio_stft(au_data_obj, fft_s, hop_s, target_sr):
     """
     ori_y, ori_sr:应当由librosa.load读取的原始音频数据ori_y以及音频采样率ori_sr
     fft_s:一个短时傅里叶变换的窗长，单位为秒
@@ -9,6 +9,7 @@ def _parse_one_audio_stft(ori_y, ori_sr, fft_s, hop_s, target_sr):
     返回：行数为 duration_s(音频长度，秒)//hop_s, 列数为 fft_s * target_sr//2 的二维数组；
         纵向代表时间(每行跨越hop_s秒)，横向代表频率（物理范围：0至(target_sr//2) Hz,每列跨越fft_s Hz），元素大小代表能量（单位：db）
     """
+    ori_y, ori_sr = au_data_obj.get_data()
     y = librosa.resample(ori_y, ori_sr, target_sr)
     sr = target_sr
 

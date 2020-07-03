@@ -1,4 +1,4 @@
-from .BaseModel import KerasCTCBaseModel
+from .KerasCTCBaseModel import KerasCTCBaseModel
 from .DataParsers.AcousticParser import AcousticDataParser, AcousticLabelParser
 from abc import abstractmethod
 from ..utils.wer import wer

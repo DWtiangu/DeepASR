@@ -1,5 +1,5 @@
 from Scripts.Models.CNN1d_CTC import CNN1d_CTC_PinYin_Sample_lessDropout
-from config import model_save_dir, cache_dir, feature, stft_fea, mel_fea, label_type
+from config import model_save_dir, cache_dir, stft_fea, mel_fea, label_type
 import os
 
 import tensorflow as tf
