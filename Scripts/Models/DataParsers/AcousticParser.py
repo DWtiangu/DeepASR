@@ -5,7 +5,7 @@ import os
 import numpy as np
 from ...utils.tools import _md5
 from .Features.stft import _parse_one_audio_stft
-from .Features.mfcc import _parse_one_audio_melspec
+from .Features.mel import _parse_one_audio_melspec, _parse_one_audio_tf_melspec
 # from ...utils.tools import _md5,walk_subfiles
 
 # AUDIO_TYPEs = ('.wav','.mp3','.aac')
@@ -51,7 +51,8 @@ class AcousticDataParser(BaseDataParser):
         # data
         Feature_funcs = {
             'stft': _parse_one_audio_stft,
-            'mel': _parse_one_audio_melspec
+            'mel': _parse_one_audio_melspec,
+            'tf_mel':_parse_one_audio_tf_melspec
         }
         self.feature = feature
         if feature['name'] in Feature_funcs:
@@ -81,13 +82,13 @@ class AcousticDataParser(BaseDataParser):
                     print("读取缓存错误:",repr(e))
                     print("重新生成该缓存:",cache_fp)
                     os.remove(cache_fp)
-                    parsed_data = self.feature_func(*au_data_obj.get_data(), **self.feature['kwargs'])
+                    parsed_data = self.feature_func(au_data_obj, **self.feature['kwargs'])
                     self._save_cache(parsed_data, cache_fp)
             else:
-                parsed_data = self.feature_func(*au_data_obj.get_data(), **self.feature['kwargs'])
+                parsed_data = self.feature_func(au_data_obj, **self.feature['kwargs'])
                 self._save_cache(parsed_data, cache_fp)
         else:
-            parsed_data = self.feature_func(*au_data_obj.get_data(), **self.feature['kwargs'])
+            parsed_data = self.feature_func(au_data_obj, **self.feature['kwargs'])
         self._check_parsed_data(parsed_data)
         return parsed_data
 

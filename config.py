@@ -24,7 +24,16 @@ mel_fea = {
         'n_mels': 128 # mel 特征维度
     }
 }
-feature = stft_fea
+
+tf_mel_fea = {
+    'name':'tf_mel',
+    'kwargs':{
+        'fft_s': 0.128,  # fft_s:一个短时傅里叶变换的窗长，单位为秒
+        'hop_s': 0.016,  # hop_s：窗之间间隔长，单位为秒
+        'n_mels': 128 # mel 特征维度
+    }
+}
+
 label_type = 'pinyin'
 
 #训练配置
